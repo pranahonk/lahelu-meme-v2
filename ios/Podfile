@@ -23,6 +23,15 @@ target 'lahelu' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  # Flipper is disabled by default in new projects. If you want to enable it,
+  # follow the instructions at https://reactnative.dev/docs/next/debugging#flipper
+  # and uncomment the next few lines.
+  #
+  # use_flipper!({ 'Flipper-Folly' => '2.6.1', 'Flipper' => '0.202.0', 'Flipper-DoubleConversion' => '3.2.1', 'Flipper-Glog' => '0.6.0', 'Flipper-PeerTalk' => '0.0.4', 'Flipper-RSocket' => '1.7.0' })
+  # post_install do |installer|
+  #   flipper_post_install(installer)
+  # end
+
   target 'laheluTests' do
     inherit! :complete
     # Pods for testing
