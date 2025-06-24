@@ -1,45 +1,43 @@
 import React from 'react';
-import { View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import {Image, ImageSourcePropType, View} from 'react-native';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  useAnimatedReaction,
-  runOnJS,
 } from 'react-native-reanimated';
-import styles, { canvasSize } from './style';
+import styles, {canvasSize} from './style';
+import {useEditor} from '../../contexts/EditorContext';
+import CanvasElement from '../CanvasElement';
 
 // Define zoom constraints
 const MIN_SCALE = 0.5;
 const MAX_SCALE = 4;
 
-import { Image, ImageSourcePropType } from 'react-native';
-import { useEditor } from '../../contexts/EditorContext';
-import CanvasElement from '../CanvasElement';
-
 interface CanvasProps {
   backgroundImage: ImageSourcePropType | null;
 }
 
-const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
-  const { state, dispatch } = useEditor();
+const Canvas = ({backgroundImage}: CanvasProps): React.JSX.Element => {
+  const {state, dispatch} = useEditor();
+
   // Live state of the canvas transformation
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
 
   // Gesture context to store state at the beginning of a gesture
-  const context = useSharedValue({ x: 0, y: 0, s: 1 });
+  const context = useSharedValue({x: 0, y: 0, s: 1});
 
   const pinchGesture = Gesture.Pinch()
-    .onStart((e) => {
+    .onStart(() => {
       context.value = {
         x: translateX.value,
         y: translateY.value,
         s: scale.value,
       };
     })
-    .onUpdate((e) => {
+    .onUpdate(e => {
       const newScale = context.value.s * e.scale;
       scale.value = Math.max(MIN_SCALE, Math.min(newScale, MAX_SCALE));
 
@@ -53,18 +51,22 @@ const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
   const panGesture = Gesture.Pan()
     .averageTouches(true)
     .onStart(() => {
-      context.value = { ...context.value, x: translateX.value, y: translateY.value };
+      context.value = {
+        ...context.value,
+        x: translateX.value,
+        y: translateY.value,
+      };
     })
-    .onUpdate((e) => {
+    .onUpdate(e => {
       translateX.value = context.value.x + e.translationX;
       translateY.value = context.value.y + e.translationY;
     });
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { scale: scale.value },
+      {translateX: translateX.value},
+      {translateY: translateY.value},
+      {scale: scale.value},
     ],
   }));
 
@@ -74,7 +76,7 @@ const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
     'worklet';
     runOnJS(dispatch)({
       type: 'SELECT_ELEMENT',
-      payload: { id: null },
+      payload: {id: null},
     });
   });
 
@@ -82,7 +84,7 @@ const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
   // allowing them to coordinate their state updates.
   const composedGesture = Gesture.Exclusive(
     Gesture.Simultaneous(pinchGesture, panGesture),
-    tapToDeselectGesture
+    tapToDeselectGesture,
   );
 
   return (
@@ -91,9 +93,13 @@ const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
         <Animated.View style={[styles.canvas, animatedStyle]}>
           <View style={styles.canvasBackground} />
           {backgroundImage && (
-            <Image source={backgroundImage} style={styles.backgroundImage} resizeMode="contain" />
+            <Image
+              source={backgroundImage}
+              style={styles.backgroundImage}
+              resizeMode="contain"
+            />
           )}
-          {state.elements.map((element) => (
+          {state.elements.map(element => (
             <CanvasElement
               key={element.id}
               element={element}

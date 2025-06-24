@@ -67,6 +67,7 @@ const CanvasElement = ({ element, canvasScale, canvasSize }: CanvasElementProps)
       { translateY: positionY.value },
       { scale: withSpring(isDragging.value ? 1.1 : 1) },
     ],
+    backgroundColor: 'red',
     zIndex: isDragging.value ? 10 : 1,
   }));
 
