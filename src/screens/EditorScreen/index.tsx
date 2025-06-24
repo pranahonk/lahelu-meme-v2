@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, PermissionsAndroid, Platform } from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
 import styles from './style';
 import Canvas from '../../components/Canvas';
 import TemplatePicker from '../../components/TemplatePicker';
@@ -9,7 +10,7 @@ import TextEditModal from '../../components/TextEditModal';
 import ColorPickerModal from '../../components/ColorPickerModal';
 import FontPickerModal from '../../components/FontPickerModal';
 import { TEMPLATES } from '../../constants/templates';
-import { MemeTemplate, TextElement } from '../../types';
+import { MemeTemplate, TextElement, ImageElement } from '../../types';
 import { useEditor } from '../../contexts/EditorContext';
 import { COLORS } from '../../constants';
 
@@ -22,6 +23,54 @@ const EditorScreen = (): React.JSX.Element => {
   const [isFontPickerVisible, setIsFontPickerVisible] = useState(false);
   const { state, dispatch } = useEditor();
   const selectedElement = state.elements.find((el) => el.id === state.selectedElementId) as TextElement | undefined;
+
+  const addImageElement = async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const permission = Platform.Version >= 33
+          ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+          : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+
+        const granted = await PermissionsAndroid.request(permission,
+          {
+            title: 'Storage Permission Required',
+            message: 'This app needs access to your storage to select images.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission Denied', 'Storage permission is required to add images.');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
+
+    launchImageLibrary({ mediaType: 'photo' }, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorCode) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else if (response.assets && response.assets[0].uri) {
+        const newImageElement: ImageElement = {
+          id: `image-${Date.now()}`,
+          type: 'image',
+          uri: response.assets[0].uri,
+          x: 50,
+          y: 50,
+          width: 150,
+          height: 150,
+          rotation: 0,
+          isSelected: false,
+        };
+        dispatch({ type: 'ADD_ELEMENT', payload: newImageElement });
+      }
+    });
+  };
 
   const addTextElement = () => {
     const newTextElement: TextElement = {
@@ -77,7 +126,7 @@ const EditorScreen = (): React.JSX.Element => {
       },
       {
         text: 'Image',
-        onPress: () => console.log('Add Image Pressed'), // To be implemented
+        onPress: addImageElement,
       },
       {
         text: 'Cancel',

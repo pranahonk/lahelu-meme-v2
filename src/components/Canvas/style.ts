@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { SIZES } from '../../constants/theme';
+import { COLORS, SIZES } from '../../constants/theme';
 
-const canvasSize = SIZES.width - SIZES.padding * 2;
+export const canvasSize = SIZES.width - SIZES.padding * 2;
 
 const styles = StyleSheet.create({
   container: {
@@ -13,6 +13,8 @@ const styles = StyleSheet.create({
   canvas: {
     width: canvasSize,
     height: canvasSize,
+    backgroundColor: COLORS.white,
+    overflow: 'hidden',
   },
   backgroundImage: {
     ...StyleSheet.absoluteFillObject,

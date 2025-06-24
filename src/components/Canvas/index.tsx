@@ -7,7 +7,7 @@ import Animated, {
   useAnimatedReaction,
   runOnJS,
 } from 'react-native-reanimated';
-import styles from './style';
+import styles, { canvasSize } from './style';
 
 // Define zoom constraints
 const MIN_SCALE = 0.5;
@@ -98,6 +98,7 @@ const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
               key={element.id}
               element={element}
               canvasScale={scale}
+              canvasSize={canvasSize}
             />
           ))}
         </Animated.View>
