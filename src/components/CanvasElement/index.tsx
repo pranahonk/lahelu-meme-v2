@@ -21,6 +21,11 @@ const CanvasElement = ({ element, canvasScale, canvasSize }: CanvasElementProps)
   const { state, dispatch } = useEditor();
   const isSelected = state.selectedElementId === element.id;
   const isDragging = useSharedValue(false);
+  const aspectRatio = element.height / element.width;
+  const width = useSharedValue(element.width);
+  const height = useSharedValue(element.height);
+  const startWidth = useSharedValue(0);
+  const startHeight = useSharedValue(0);
   const positionX = useSharedValue(element.x);
   const positionY = useSharedValue(element.y);
   const elementWidth = useSharedValue(0);
@@ -51,6 +56,26 @@ const CanvasElement = ({ element, canvasScale, canvasSize }: CanvasElementProps)
     })
     .withTestId(`drag-${element.id}`);
 
+  const resizeGesture = Gesture.Pan()
+    .onStart(() => {
+      'worklet';
+      startWidth.value = width.value;
+      startHeight.value = height.value;
+    })
+    .onUpdate((e) => {
+      'worklet';
+      const newWidth = Math.max(20, startWidth.value + e.translationX);
+      width.value = newWidth;
+      height.value = newWidth * aspectRatio;
+    })
+    .onEnd(() => {
+      'worklet';
+      runOnJS(dispatch)({
+        type: 'UPDATE_ELEMENT',
+        payload: { id: element.id, data: { width: width.value, height: height.value } },
+      });
+    });
+
   const tapGesture = Gesture.Tap().onEnd(() => {
     'worklet';
     runOnJS(dispatch)({
@@ -62,8 +87,8 @@ const CanvasElement = ({ element, canvasScale, canvasSize }: CanvasElementProps)
   const composedGesture = Gesture.Exclusive(panGesture, tapGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    width: element.width,
-    height: element.height,
+    width: width.value,
+    height: height.value,
     transform: [
       { translateX: positionX.value },
       { translateY: positionY.value },
@@ -103,6 +128,11 @@ const CanvasElement = ({ element, canvasScale, canvasSize }: CanvasElementProps)
           elementHeight.value = event.nativeEvent.layout.height;
         }}>
         {renderElement()}
+        {isSelected && (
+          <GestureDetector gesture={resizeGesture}>
+            <Animated.View style={styles.resizeHandle} />
+          </GestureDetector>
+        )}
       </Animated.View>
     </GestureDetector>
   );

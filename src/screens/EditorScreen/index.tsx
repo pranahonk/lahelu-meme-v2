@@ -56,14 +56,34 @@ const EditorScreen = (): React.JSX.Element => {
       } else if (response.errorCode) {
         console.log('ImagePicker Error: ', response.errorMessage);
       } else if (response.assets && response.assets[0].uri) {
+        const asset = response.assets[0];
+        const { width: originalWidth, height: originalHeight } = asset;
+
+        // Scale the image down to fit within a max dimension while preserving aspect ratio
+        const MAX_DIMENSION = 250;
+        let width = originalWidth || MAX_DIMENSION;
+        let height = originalHeight || MAX_DIMENSION;
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          if (width > height) {
+            const ratio = MAX_DIMENSION / width;
+            width = MAX_DIMENSION;
+            height = height * ratio;
+          } else {
+            const ratio = MAX_DIMENSION / height;
+            height = MAX_DIMENSION;
+            width = width * ratio;
+          }
+        }
+
         const newImageElement: ImageElement = {
           id: `image-${Date.now()}`,
           type: 'image',
-          uri: response.assets[0].uri,
+          uri: asset.uri!,
           x: 50,
           y: 50,
-          width: 150,
-          height: 150,
+          width,
+          height,
           rotation: 0,
           isSelected: false,
         };
