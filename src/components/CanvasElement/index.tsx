@@ -17,7 +17,8 @@ interface CanvasElementProps {
 }
 
 const CanvasElement = ({ element, canvasScale }: CanvasElementProps): React.JSX.Element => {
-  const { dispatch } = useEditor();
+  const { state, dispatch } = useEditor();
+  const isSelected = state.selectedElementId === element.id;
   const isDragging = useSharedValue(false);
   const positionX = useSharedValue(element.x);
   const positionY = useSharedValue(element.y);
@@ -39,6 +40,16 @@ const CanvasElement = ({ element, canvasScale }: CanvasElementProps): React.JSX.
       isDragging.value = false;
     })
     .withTestId(`drag-${element.id}`);
+
+  const tapGesture = Gesture.Tap().onEnd(() => {
+    'worklet';
+    runOnJS(dispatch)({
+      type: 'SELECT_ELEMENT',
+      payload: { id: element.id },
+    });
+  });
+
+  const composedGesture = Gesture.Exclusive(panGesture, tapGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -65,8 +76,8 @@ const CanvasElement = ({ element, canvasScale }: CanvasElementProps): React.JSX.
   };
 
   return (
-    <GestureDetector gesture={panGesture}>
-      <Animated.View style={[styles.container, animatedStyle]}>
+    <GestureDetector gesture={composedGesture}>
+      <Animated.View style={[styles.container, animatedStyle, isSelected && styles.selected]}>
         {renderElement()}
       </Animated.View>
     </GestureDetector>

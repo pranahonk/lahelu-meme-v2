@@ -42,6 +42,14 @@ export const SIZES = {
   height,
 };
 
+export const FONT_FAMILIES = [
+  'System',
+  'Arial',
+  'Times New Roman',
+  'Courier New',
+  'Impact',
+];
+
 export const FONTS = {
   h1: { fontFamily: 'System', fontSize: SIZES.h1, lineHeight: 36 },
   h2: { fontFamily: 'System', fontSize: SIZES.h2, lineHeight: 30 },

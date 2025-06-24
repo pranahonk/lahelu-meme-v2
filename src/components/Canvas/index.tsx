@@ -5,6 +5,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   useAnimatedReaction,
+  runOnJS,
 } from 'react-native-reanimated';
 import styles from './style';
 
@@ -21,7 +22,7 @@ interface CanvasProps {
 }
 
 const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
-  const { state } = useEditor();
+  const { state, dispatch } = useEditor();
   // Live state of the canvas transformation
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
@@ -69,12 +70,26 @@ const Canvas = ({ backgroundImage }: CanvasProps): React.JSX.Element => {
 
   // The context object is shared between simultaneous gestures,
   // allowing them to coordinate their state updates.
-  const composedGesture = Gesture.Simultaneous(pinchGesture, panGesture);
+  const tapToDeselectGesture = Gesture.Tap().onEnd(() => {
+    'worklet';
+    runOnJS(dispatch)({
+      type: 'SELECT_ELEMENT',
+      payload: { id: null },
+    });
+  });
+
+  // The context object is shared between simultaneous gestures,
+  // allowing them to coordinate their state updates.
+  const composedGesture = Gesture.Exclusive(
+    Gesture.Simultaneous(pinchGesture, panGesture),
+    tapToDeselectGesture
+  );
 
   return (
     <View style={styles.container}>
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={[styles.canvas, animatedStyle]}>
+          <View style={styles.canvasBackground} />
           {backgroundImage && (
             <Image source={backgroundImage} style={styles.backgroundImage} resizeMode="contain" />
           )}

@@ -4,14 +4,24 @@ import styles from './style';
 import Canvas from '../../components/Canvas';
 import TemplatePicker from '../../components/TemplatePicker';
 import FloatingActionButton from '../../components/FloatingActionButton';
+import EditingToolbar from '../../components/EditingToolbar';
+import TextEditModal from '../../components/TextEditModal';
+import ColorPickerModal from '../../components/ColorPickerModal';
+import FontPickerModal from '../../components/FontPickerModal';
 import { TEMPLATES } from '../../constants/templates';
 import { MemeTemplate, TextElement } from '../../types';
 import { useEditor } from '../../contexts/EditorContext';
 import { COLORS } from '../../constants';
 
+import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
+
 const EditorScreen = (): React.JSX.Element => {
   const [selectedTemplate, setSelectedTemplate] = useState<MemeTemplate | null>(null);
-  const { dispatch } = useEditor();
+  const [isTextEditModalVisible, setIsTextEditModalVisible] = useState(false);
+  const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
+  const [isFontPickerVisible, setIsFontPickerVisible] = useState(false);
+  const { state, dispatch } = useEditor();
+  const selectedElement = state.elements.find((el) => el.id === state.selectedElementId) as TextElement | undefined;
 
   const addTextElement = () => {
     const newTextElement: TextElement = {
@@ -24,11 +34,39 @@ const EditorScreen = (): React.JSX.Element => {
       height: 50,
       rotation: 0,
       isSelected: false,
-      color: COLORS.white,
+      color: COLORS.black,
       fontSize: 24,
       fontFamily: 'System',
     };
     dispatch({ type: 'ADD_ELEMENT', payload: newTextElement });
+  };
+
+  const handleSaveText = (newText: string) => {
+    if (selectedElement) {
+      dispatch({
+        type: 'UPDATE_ELEMENT',
+        payload: { id: selectedElement.id, data: { text: newText } },
+      });
+    }
+  };
+
+  const handleColorChange = (newColor: string) => {
+    if (selectedElement) {
+      dispatch({
+        type: 'UPDATE_ELEMENT',
+        payload: { id: selectedElement.id, data: { color: newColor } },
+      });
+    }
+  };
+
+  const handleFontChange = (newFont: string) => {
+    if (selectedElement) {
+      dispatch({
+        type: 'UPDATE_ELEMENT',
+        payload: { id: selectedElement.id, data: { fontFamily: newFont } },
+      });
+    }
+    setIsFontPickerVisible(false);
   };
 
   const handleAddPress = () => {
@@ -56,7 +94,41 @@ const EditorScreen = (): React.JSX.Element => {
         selectedTemplateId={selectedTemplate?.id}
         onSelectTemplate={setSelectedTemplate}
       />
-      <FloatingActionButton iconName="add-outline" onPress={handleAddPress} />
+      {state.selectedElementId ? (
+        <Animated.View entering={SlideInDown} exiting={SlideOutDown}>
+          <EditingToolbar
+          selectedElement={selectedElement}
+          onEditText={() => setIsTextEditModalVisible(true)}
+          onColorPress={() => setIsColorPickerVisible(true)}
+          onFontPress={() => setIsFontPickerVisible(true)}
+        />
+        </Animated.View>
+      ) : (
+        <FloatingActionButton iconName="add-outline" onPress={handleAddPress} />
+      )}
+      {selectedElement && (
+        <TextEditModal
+          isVisible={isTextEditModalVisible}
+          onClose={() => setIsTextEditModalVisible(false)}
+          onSave={handleSaveText}
+          initialText={selectedElement.text || ''}
+        />
+      )}
+      {selectedElement && (
+        <ColorPickerModal
+          isVisible={isColorPickerVisible}
+          onClose={() => setIsColorPickerVisible(false)}
+          onSelectColor={handleColorChange}
+          initialColor={(selectedElement as TextElement)?.color || '#000000'}
+        />
+      )}
+      {selectedElement && (
+        <FontPickerModal
+          isVisible={isFontPickerVisible}
+          onClose={() => setIsFontPickerVisible(false)}
+          onSelectFont={handleFontChange}
+        />
+      )}
     </View>
   );
 };

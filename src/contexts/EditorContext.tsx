@@ -4,13 +4,15 @@ import { CanvasElement } from '../types';
 // Define the shape of the editor's state
 interface EditorState {
   elements: CanvasElement[];
+  selectedElementId: string | null;
 }
 
 // Define the actions that can be dispatched
 type Action =
   | { type: 'ADD_ELEMENT'; payload: CanvasElement }
   | { type: 'UPDATE_ELEMENT'; payload: { id: string; data: Partial<CanvasElement> } }
-  | { type: 'REMOVE_ELEMENT'; payload: { id: string } };
+  | { type: 'REMOVE_ELEMENT'; payload: { id: string } }
+  | { type: 'SELECT_ELEMENT'; payload: { id: string | null } };
 
 // Define the shape of the context
 interface EditorContextProps {
@@ -41,6 +43,11 @@ const editorReducer = (state: EditorState, action: Action): EditorState => {
         ...state,
         elements: state.elements.filter((el) => el.id !== action.payload.id),
       };
+    case 'SELECT_ELEMENT':
+      return {
+        ...state,
+        selectedElementId: action.payload.id,
+      };
     default:
       return state;
   }
@@ -48,6 +55,7 @@ const editorReducer = (state: EditorState, action: Action): EditorState => {
 
 const initialState: EditorState = {
   elements: [],
+  selectedElementId: null,
 };
 
 export const EditorProvider = ({ children }: { children: ReactNode }): React.JSX.Element => {
