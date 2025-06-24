@@ -10,6 +10,7 @@ interface EditingToolbarProps {
   onEditText: () => void;
   onColorPress: () => void;
   onFontPress: () => void;
+  onDelete: () => void;
 }
 
 const EditingToolbar = ({
@@ -17,7 +18,8 @@ const EditingToolbar = ({
   onEditText,
   onColorPress,
   onFontPress,
-}: EditingToolbarProps) => {
+  onDelete,
+}: EditingToolbarProps): React.JSX.Element | null => {
   const {dispatch} = useEditor();
 
   const handleDelete = () => {
@@ -63,7 +65,7 @@ const EditingToolbar = ({
         onPress={onFontPress}
         label="Font"
       />
-      <ToolbarButton iconName="trash-outline" onPress={handleDelete} />
+      <ToolbarButton iconName="trash-outline" onPress={onDelete} />
     </View>
   );
 };

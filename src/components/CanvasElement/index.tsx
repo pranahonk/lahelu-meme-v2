@@ -62,12 +62,13 @@ const CanvasElement = ({ element, canvasScale, canvasSize }: CanvasElementProps)
   const composedGesture = Gesture.Exclusive(panGesture, tapGesture);
 
   const animatedStyle = useAnimatedStyle(() => ({
+    width: element.width,
+    height: element.height,
     transform: [
       { translateX: positionX.value },
       { translateY: positionY.value },
       { scale: withSpring(isDragging.value ? 1.1 : 1) },
     ],
-    backgroundColor: 'red',
     zIndex: isDragging.value ? 10 : 1,
   }));
 

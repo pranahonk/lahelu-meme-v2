@@ -108,6 +108,12 @@ const EditorScreen = (): React.JSX.Element => {
     }
   };
 
+  const handleDeleteElement = () => {
+    if (selectedElement) {
+      dispatch({ type: 'REMOVE_ELEMENT', payload: { id: selectedElement.id } });
+    }
+  };
+
   const handleFontChange = (newFont: string) => {
     if (selectedElement) {
       dispatch({
@@ -150,6 +156,7 @@ const EditorScreen = (): React.JSX.Element => {
           onEditText={() => setIsTextEditModalVisible(true)}
           onColorPress={() => setIsColorPickerVisible(true)}
           onFontPress={() => setIsFontPickerVisible(true)}
+          onDelete={handleDeleteElement}
         />
         </Animated.View>
       ) : (
